@@ -1,0 +1,84 @@
+//add
+exports.add=function(m1,m2)
+{
+    return parseInt(m1)+parseInt(m2);
+}
+//percentage
+exports.percentage=function(m1,m2,m3)
+{	
+	var total=parseInt(m1)+parseInt(m2)+parseInt(m3);
+	var div=total/300;
+	var pr=div*100;
+	return pr;
+}
+
+//addServer
+
+var http=require("http");
+var fs=require("fs");
+var url=require("url");
+var query=require("querystring");
+var m1=require("./addPermodule");
+function process_request(req,resp)
+{
+   var u=url.parse(req.url);
+   
+   resp.writeHead(200,{'Content-Type':'text/html'});
+   switch(u.pathname){
+    case '/':
+	fs.readFile("form.html",function(err,data){
+	   if(err){
+		   resp.write('some error');
+		   console.log(err);
+		   
+	   }else{
+     resp.write(data);
+	   resp.end();}
+    });
+	break;
+	case '/calc':
+	   var str="";
+	   req.on('data',function(d)
+	   {
+	   str+=d;});
+	   req.on('end',function()
+	   {
+	      console.log(str);
+		  var ob=query.parse(str);
+		  var sum=m1.add(ob.m1,ob.m2);
+		  resp.end("<h1>Addition : "+sum+"</h1>");
+	   
+	   });
+	   case '/per':
+	   var str="";
+	   req.on('data',function(d)
+	   {
+	   str=str+d;
+	   });
+	   req.on('end',function()
+	   {
+	      console.log(str);
+		  var ob=query.parse(str);
+		  var p=m1.percentage(ob.m1,ob.m2,ob.m3);
+		  resp.end("<h1>Percentage : "+p+"</h1>");
+	   
+	   });
+	   
+      }
+}
+var server=http.createServer(process_request);
+server.listen(3000);
+console.log("server is running at port 3000");
+
+//form
+    <html>
+		<body>
+            <form action="/per" method="post">
+                <h3>Enter Marks :</h3><br /><br />
+				Subject 1:<input type="text" name="m1" /><br /><br />
+                Subject 2:<input type="text" name="m2" /><br /><br />
+                Subject 3:<input type="text" name="m3" /><br /><br />
+                <button type="submit">submit</button>
+            </form>
+        </body>
+    </html>
